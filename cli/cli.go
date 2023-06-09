@@ -4,7 +4,6 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"github.com/clbanning/mxj/v2"
 	"io"
 	"os"
 	"path/filepath"
@@ -50,8 +49,10 @@ type cli struct {
 	inputXML      bool
 	inputYAML     bool
 	inputSlurp    bool
-	keepSpaceXML  bool
+	stripSpaceXML bool
+	stripAttrsXML bool
 	forceListXML  []string
+	htmlXML       bool
 	rootXML       string
 	elementXML    string
 
@@ -77,10 +78,12 @@ type flagopts struct {
 	InputRaw      bool              `short:"R" long:"raw-input" description:"read input as raw strings"`
 	InputStream   bool              `long:"stream" description:"parse input in stream fashion"`
 	InputXML      bool              `short:"X" long:"xml-input" description:"read input as XML format"`
-	KeepSpaceXML  bool              `long:"xml-keep-namespace" description:"keep namespace in XML elements and attributes"`
+	StripAttrsXML bool              `long:"xml-no-attributes" description:"remove attributes from XML elements"`
+	StripSpaceXML bool              `long:"xml-no-namespaces" description:"remove namespace from XML elements and attributes"`
 	ForceListXML  []string          `long:"xml-force-list" description:"force XML elements as array"`
 	RootXML       string            `long:"xml-root" description:"root XML element name"`
 	ElementXML    string            `long:"xml-element" description:"element XML element name"`
+	HtmlXML       bool              `long:"xml-html" description:"HTML compatibility mode"`
 	InputYAML     bool              `short:"Y" long:"yaml-input" description:"read input as YAML format"`
 	InputSlurp    bool              `short:"s" long:"slurp" description:"read all inputs into an array"`
 	FromFile      string            `short:"f" long:"from-file" description:"load query from file"`
@@ -167,8 +170,8 @@ Usage:
 	}
 	cli.inputRaw, cli.inputStream, cli.inputYAML, cli.inputSlurp =
 		opts.InputRaw, opts.InputStream, opts.InputYAML, opts.InputSlurp
-	cli.inputXML, cli.keepSpaceXML, cli.forceListXML, cli.rootXML, cli.elementXML =
-		opts.InputXML, opts.KeepSpaceXML, opts.ForceListXML, opts.RootXML, opts.ElementXML
+	cli.inputXML, cli.stripAttrsXML, cli.stripSpaceXML, cli.forceListXML, cli.rootXML, cli.elementXML, cli.htmlXML =
+		opts.InputXML, opts.StripAttrsXML, opts.StripSpaceXML, opts.ForceListXML, opts.RootXML, opts.ElementXML, opts.HtmlXML
 	for k, v := range opts.Arg {
 		cli.argnames = append(cli.argnames, "$"+k)
 		cli.argvalues = append(cli.argvalues, v)
@@ -331,11 +334,9 @@ func (cli *cli) createInputIter(args []string) (iter inputIter) {
 	case cli.inputStream:
 		newIter = newStreamInputIter
 	case cli.inputXML:
-		mxj.FixRoot(true)
-		mxj.ForceList(cli.forceListXML...)
-		mxj.KeepNamespace(cli.keepSpaceXML)
-		mxj.SetAttrPrefix("@")
-		newIter = newXMLInputIter
+		newIter = func(r io.Reader, fname string) inputIter {
+			return newXMLInputIter(r, fname, !cli.stripAttrsXML, !cli.stripSpaceXML, cli.forceListXML, cli.htmlXML)
+		}
 	case cli.inputYAML:
 		newIter = newYAMLInputIter
 	default:
@@ -415,9 +416,6 @@ func (cli *cli) createMarshaler() marshaler {
 	if cli.outputYAML {
 		return yamlFormatter(cli.outputIndent)
 	}
-	if cli.outputXML {
-		return xmlFormatter(cli.outputIndent, cli.rootXML, cli.elementXML)
-	}
 	indent := 2
 	if cli.outputCompact {
 		indent = 0
@@ -425,6 +423,9 @@ func (cli *cli) createMarshaler() marshaler {
 		indent = 1
 	} else if i := cli.outputIndent; i != nil {
 		indent = *i
+	}
+	if cli.outputXML {
+		return xmlFormatter(&indent, cli.rootXML, cli.elementXML)
 	}
 	f := newEncoder(cli.outputTab, indent)
 	if cli.outputRaw || cli.outputJoin || cli.outputNul {
