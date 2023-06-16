@@ -11,7 +11,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/momiji/gojq"
+	"github.com/itchyny/gojq"
 	"github.com/momiji/xqml"
 )
 
