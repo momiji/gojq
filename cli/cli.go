@@ -12,7 +12,7 @@ import (
 
 	"github.com/mattn/go-isatty"
 
-	"github.com/momiji/gojq"
+	"github.com/itchyny/gojq"
 )
 
 const name = "gojq"
