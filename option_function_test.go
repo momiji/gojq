@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"strconv"
 
-	"github.com/momiji/gojq"
+	"github.com/itchyny/gojq"
 )
 
 func toFloat(x any) (float64, bool) {

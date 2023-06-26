@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/momiji/gojq"
+	"github.com/itchyny/gojq"
 )
 
 func ExampleQuery_Run() {
