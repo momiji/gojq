@@ -11,7 +11,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/momiji/gojq"
+	"github.com/itchyny/gojq"
 )
 
 func ExampleCompile() {
