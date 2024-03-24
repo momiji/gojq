@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/momiji/gojq"
+	"github.com/itchyny/gojq"
 )
 
 func ExampleQuery_Run() {
@@ -90,6 +90,54 @@ func TestQueryRun_Errors(t *testing.T) {
 	}
 	if expected := 5; n != expected {
 		t.Errorf("expected: %v, got: %v", expected, n)
+	}
+}
+
+func TestQueryRun_Halt(t *testing.T) {
+	query, err := gojq.Parse("0, halt, 1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	iter := query.Run(nil)
+	for {
+		v, ok := iter.Next()
+		if !ok {
+			break
+		}
+		if err, ok := v.(error); ok {
+			if _, ok := err.(gojq.HaltError); ok {
+				break
+			}
+			t.Errorf("should emit a halt error but got: %v", err)
+		} else if expected := 0; v != expected {
+			t.Errorf("expected: %#v, got: %#v", expected, v)
+		}
+	}
+}
+
+func TestQueryRun_HaltError(t *testing.T) {
+	query, err := gojq.Parse(".[] | halt_error")
+	if err != nil {
+		t.Fatal(err)
+	}
+	iter := query.Run([]any{"foo", "bar", "baz"})
+	for {
+		v, ok := iter.Next()
+		if !ok {
+			break
+		}
+		if err, ok := v.(error); ok {
+			if _, ok := err.(gojq.HaltError); ok {
+				if expected := "halt error: foo"; err.Error() != expected {
+					t.Errorf("expected: %v, got: %v", expected, err)
+				}
+				break
+			} else {
+				t.Errorf("should emit a halt error but got: %v", err)
+			}
+		} else {
+			t.Errorf("should emit an error but got: %v", v)
+		}
 	}
 }
 

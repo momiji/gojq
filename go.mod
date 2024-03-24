@@ -1,4 +1,4 @@
-module github.com/momiji/gojq
+module github.com/itchyny/gojq
 
 go 1.20
 
