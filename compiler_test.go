@@ -2,6 +2,7 @@ package gojq_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -11,7 +12,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/momiji/gojq"
+	"github.com/itchyny/gojq"
 )
 
 func ExampleCompile() {
@@ -272,6 +273,36 @@ func TestCodeCompile_OptimizeJumps(t *testing.T) {
 		if expected := 1; !reflect.DeepEqual(got, expected) {
 			t.Errorf("expected: %v, got: %v", expected, got)
 		}
+	}
+}
+
+func TestParseErrorTokenOffset(t *testing.T) {
+	testCases := []struct {
+		src    string
+		offset int
+	}{
+		{src: "^", offset: 1},
+		{src: " ^", offset: 2},
+		{src: " ^ ", offset: 2},
+		{src: "👍", offset: 4},
+		{src: " 👍", offset: 5},
+		{src: " 👍 ", offset: 5},
+		{src: "test👍", offset: 8},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.src, func(t *testing.T) {
+			_, err := gojq.Parse(tc.src)
+			if err == nil {
+				t.Fatal("expected: error")
+			}
+			var pe *gojq.ParseError
+			if !errors.As(err, &pe) {
+				t.Fatalf("expected: *gojq.ParseError, got %v", err)
+			}
+			if pe.Offset != tc.offset {
+				t.Fatalf("expected: %v, got %v", tc.offset, pe.Offset)
+			}
+		})
 	}
 }
 

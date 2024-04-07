@@ -4,19 +4,17 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"github.com/itchyny/gojq"
+	"github.com/mattn/go-isatty"
 	"io"
 	"os"
 	"runtime"
 	"strings"
-
-	"github.com/mattn/go-isatty"
-
-	"github.com/momiji/gojq"
 )
 
 const name = "gojq"
 
-const version = "0.12.14"
+const version = "0.12.15"
 
 var revision = "HEAD"
 
@@ -96,8 +94,7 @@ type flagopts struct {
 	Args          []any             `long:"args" positional:"" description:"consume remaining arguments as positional string values"`
 	JSONArgs      []any             `long:"jsonargs" positional:"" description:"consume remaining arguments as positional JSON values"`
 	ExitStatus    bool              `short:"e" long:"exit-status" description:"exit 1 when the last value is false or null"`
-	Version       bool              `short:"V" long:"version" description:"display version information"`
-	OldVersion    bool              `short:"v" description:"display version information"`
+	Version       bool              `short:"v" long:"version" description:"display version information"`
 	Help          bool              `short:"h" long:"help" description:"display this help information"`
 }
 
@@ -138,7 +135,7 @@ Usage:
 		fmt.Fprintln(cli.outStream, formatFlags(&opts))
 		return nil
 	}
-	if opts.Version || opts.OldVersion {
+	if opts.Version {
 		fmt.Fprintf(cli.outStream, "%s %s (rev: %s/%s)\n", name, version, revision, runtime.Version())
 		return nil
 	}
@@ -373,7 +370,7 @@ func (cli *cli) process(iter inputIter, code *gojq.Code) error {
 			continue
 		}
 		if e := cli.printValues(code.Run(v, cli.argvalues...)); e != nil {
-			if e, ok := e.(gojq.HaltError); ok {
+			if e, ok := e.(*gojq.HaltError); ok {
 				if v := e.Value(); v != nil {
 					if str, ok := v.(string); ok {
 						cli.errStream.Write([]byte(str))

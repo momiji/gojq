@@ -10,7 +10,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/momiji/gojq"
+	"github.com/itchyny/gojq"
 	"github.com/momiji/xqml"
 )
 
@@ -141,7 +141,7 @@ func (i *nullInputIter) Close() error {
 	return nil
 }
 
-func (i *nullInputIter) Name() string {
+func (*nullInputIter) Name() string {
 	return ""
 }
 

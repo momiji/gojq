@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/momiji/gojq"
+	"github.com/itchyny/gojq"
 )
 
 func TestMarshal(t *testing.T) {
