@@ -4,7 +4,7 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"github.com/itchyny/gojq"
+	"github.com/momiji/gojq"
 	"github.com/mattn/go-isatty"
 	"io"
 	"os"

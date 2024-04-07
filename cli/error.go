@@ -11,7 +11,7 @@ import (
 
 	"github.com/mattn/go-runewidth"
 
-	"github.com/itchyny/gojq"
+	"github.com/momiji/gojq"
 )
 
 type emptyError struct {
