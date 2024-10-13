@@ -4,7 +4,7 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"github.com/momiji/gojq"
+	"github.com/itchyny/gojq"
 	"github.com/mattn/go-isatty"
 	"io"
 	"os"
@@ -14,7 +14,7 @@ import (
 
 const name = "gojq"
 
-const version = "0.12.15"
+const version = "0.12.16"
 
 var revision = "HEAD"
 
@@ -38,7 +38,6 @@ type cli struct {
 	outputCompact bool
 	outputIndent  *int
 	outputTab     bool
-	outputJSON    bool
 	outputXML     bool
 	outputYAML    bool
 	inputRaw      bool
